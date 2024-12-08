@@ -104,7 +104,7 @@ int main() {
 
     while (true) {
         // Create the URL with the updated r value
-        std::string url = "https://finviz.com/screener.ashx?v=111&r=" + std::to_string(r_value);
+        std::string url = "https://finviz.com/screener.ashx?v=111&f=sh_opt_option&r=" + std::to_string(r_value);
 
         // Fetch HTML content
         std::string htmlContent = fetchHTML(url);
