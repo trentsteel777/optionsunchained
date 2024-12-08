@@ -173,7 +173,7 @@ std::vector<std::string> getExpirationDates(const std::string& ticker, const std
     // Initialize CURL
     CURL* curl = curl_easy_init();
     if (!curl) {
-        std::cerr << "Failed to initialize CURL." << std::endl;
+        error_logger->error("Failed to initialize CURL.");
         return {};
     }
 
@@ -193,7 +193,7 @@ std::vector<std::string> getExpirationDates(const std::string& ticker, const std
     // Perform the request
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
-        std::cerr << "CURL request failed: " << curl_easy_strerror(res) << std::endl;
+        error_logger->error("CURL request failed: {}", curl_easy_strerror(res));
         curl_easy_cleanup(curl);
         return {};
     }
@@ -229,26 +229,24 @@ int main() {
     //spdlog::get("app_logger")->warn("This is a warning message");
     //spdlog::get("app_logger")->error("This is an error message");
 
-    
-
     std::string crumb = getCrumb();
     if (!crumb.empty()) {
-        std::cout << "Crumb: " << crumb << std::endl;
+        app_logger->info("Crumb: {}", crumb);
     } else {
-        std::cout << "Failed to retrieve crumb." << std::endl;
+        app_logger->error("Failed to retrieve crumb.");
     }
 
     // Read ticker symbols into a vector
     std::vector<std::string> tickers = read_watchlist("watchlist.txt");
     if (tickers.empty()) {
-        std::cerr << "No tickers found in the watchlist." << std::endl;
+        error_logger->error("No tickers found in the watchlist.");
         return 1;
     }
 
     // Initialize CURL
     CURL* curl = curl_easy_init();
     if (!curl) {
-        std::cerr << "Failed to initialize CURL." << std::endl;
+        error_logger->error("Failed to initialize CURL.");
         return 1;
     }
 
@@ -266,7 +264,7 @@ int main() {
             create_directories(outputDir);
             
             for (const std::string& expirationDate : expirationDates) {
-                std::cout << expirationDate << std::endl;
+                app_logger->info("Expiration Date: {}", expirationDate);
                 
                 std::string formattedDate = format_timestamp_to_date(expirationDate);
                 std::string outputPath = outputDir + "/" + formattedDate + ".json";
@@ -278,14 +276,14 @@ int main() {
                         // Open the output file
                         std::ofstream outFile(outputPath);
                         if (!outFile.is_open()) {
-                            std::cerr << "Failed to open file for writing: " << outputPath << std::endl;
+                            error_logger->error("Failed to open file for writing: {}", outputPath);
                             return 1;
                         }
 
                         // Print the generated URL (or use it in your request)
                         char url[512];  // Buffer to hold the final URL
                         std::sprintf(url, url_template, ticker.c_str(), expirationDate.c_str(), crumb.c_str());
-                        std::cout << "Generated URL for " << ticker << ": " << url << std::endl;
+                        app_logger->info("Generated URL for {}: {}", ticker, url);
 
                         // Set CURL options
                         curl_easy_setopt(curl, CURLOPT_URL, url);                         // API URL
@@ -298,9 +296,9 @@ int main() {
                         // Perform the API request
                         CURLcode res = curl_easy_perform(curl);
                         if (res != CURLE_OK) {
-                            std::cerr << "CURL request failed: " << curl_easy_strerror(res) << std::endl;
+                            error_logger->error("CURL request failed: {}", curl_easy_strerror(res));
                         } else {
-                            std::cout << "JSON response saved to " << outputPath << std::endl;
+                            app_logger->info("JSON response saved to {}", outputPath);
                         }
 
                         // Reset the CURL handle to clear previous settings
@@ -313,22 +311,20 @@ int main() {
                         success = true;  // Mark operation as successful
                         break;  // Exit retry loop
                     } catch (const std::exception& e) {
-                        std::cerr << "Error processing expiration date " << expirationDate
-                                << " (attempt " << (attempt + 1) << "): " << e.what() << std::endl;
+                        error_logger->error("Error processing expiration date {} (attempt {}): {}", expirationDate, (attempt + 1), e.what());
                     } catch (...) {
-                        std::cerr << "Unknown error processing expiration date " << expirationDate
-                                << " (attempt " << (attempt + 1) << ")." << std::endl;
+                        error_logger->error("Unknown error processing expiration date {} (attempt {}).", expirationDate, (attempt + 1));
                     }
                 }
             }
         
         } catch (const std::exception& e) {
             // Catch any standard exception and log the ticker
-            std::cerr << "Error processing ticker " << ticker << ": " << e.what() << std::endl;
+            error_logger->error("Error processing ticker {}: {}", ticker, e.what());
             errorTickers.push_back(ticker);
         } catch (...) {
             // Catch any non-standard exception
-            std::cerr << "Unknown error processing ticker " << ticker << "." << std::endl;
+            error_logger->error("Unknown error processing ticker {}", ticker);
             errorTickers.push_back(ticker);
         }
     }
