@@ -14,6 +14,39 @@
 
 #include <nlohmann/json.hpp>
 
+#include <memory>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/daily_file_sink.h>
+
+// Declare a global logger pointer
+std::shared_ptr<spdlog::logger> app_logger;
+std::shared_ptr<spdlog::logger> error_logger;
+
+// Function to initialize spdlog with file rotation
+void init_spdlog() {
+    // Create log directory if it doesn't exist
+    std::filesystem::create_directory("log");
+
+    // Setup app.log with daily rotation at midnight
+    app_logger = spdlog::daily_logger_mt("app_logger", "log/app.log", 0, 0);
+    app_logger->set_level(spdlog::level::info); // Set log level for general logs
+    app_logger->flush_on(spdlog::level::info); // Flush after every info log
+
+    // Setup error.log with daily rotation at midnight
+    error_logger = spdlog::daily_logger_mt("error_logger", "log/error.log", 0, 0);
+    error_logger->set_level(spdlog::level::err); // Set log level for error logs
+    error_logger->flush_on(spdlog::level::err); // Flush after every error log
+
+    // Example log messages
+    app_logger->info("This is a general info log.");
+    app_logger->warn("This is a warning log.");
+    app_logger->debug("This is a debug message (won't be logged).");
+
+    error_logger->error("This is an error message.");
+    error_logger->critical("This is a critical error.");
+}
+
 // Callback to store data received from CURL
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     size_t totalSize = size * nmemb;
@@ -189,6 +222,15 @@ std::vector<std::string> getExpirationDates(const std::string& ticker, const std
 }
 
 int main() {
+    init_spdlog();
+
+    // Log messages
+    //spdlog::get("app_logger")->info("This is an info message");
+    //spdlog::get("app_logger")->warn("This is a warning message");
+    //spdlog::get("app_logger")->error("This is an error message");
+
+    
+
     std::string crumb = getCrumb();
     if (!crumb.empty()) {
         std::cout << "Crumb: " << crumb << std::endl;

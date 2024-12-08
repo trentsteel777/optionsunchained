@@ -1,7 +1,10 @@
 Installation:
     sudo apt-get install libcurl4-openssl-dev libcjson-dev libboost-filesystem-dev libboost-system-dev
-    sudo apt-get install nlohmann-json3-dev libxml2-dev
+    sudo apt-get install nlohmann-json3-dev libxml2-dev libspdlog-dev
     sudo apt install gdb
+
+    Check boost version:
+        cat /usr/include/boost/version.hpp | grep "#define BOOST_LIB_VERSION"
 
 Clean:
     rm -f *.o fetch_options finviz_scraper

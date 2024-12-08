@@ -4,7 +4,17 @@ TODO:
         check isLastPage() works
         check append to file works
     error handling and recovery
-    test cron job
-    rclone / rsync
+    DONE - test cron job
+    DONE - rclone / rsync
         read only access to shared drive
-    get free server
+    DONE - get free server
+
+
+Run optionalbe finviz scraper
+add logging library 
+why not free gcp vm?
+add in wheel strategy, oat++, react dashboard
+add in monitor to alert things are broken
+
+fix ngrdt
+fix py-alpaca-bot
